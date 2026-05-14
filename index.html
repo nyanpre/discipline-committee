@@ -23,7 +23,8 @@
     </div>
 
     <script>
-        async def checkMorals() {
+        async function checkMorals() {
+            const handle = document.getElementById('handle').value;
             const handle = document.getElementById('handle').value;
             const btn = document.getElementById('btn');
             btn.disabled = true;
