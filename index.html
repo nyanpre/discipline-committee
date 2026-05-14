@@ -31,7 +31,7 @@
             btn.innerText = "検査中...";
 
             // Hugging FaceのSpaceの直URLを指定
-            const response = await fetch(`https://あなたのユーザー名-あなたのSpace名.hf.space/analyze?handle=${handle}`);
+            const response = await fetch(`https://nyanpre-discipline-committee.hf.space/analyze?handle=${handle}`);
             const data = await response.json();
 
             document.getElementById('level').innerText = data.disorder_level + "%";
