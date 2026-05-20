@@ -6,7 +6,6 @@
     <title>青空風紀委員</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* スマホ向けのフォントサイズ微調整とテーブル折り返し設定 */
         @media (max-width: 640px) {
             .post-text { font-size: 0.85rem; line-height: 1.4; }
             .table-header { font-size: 0.8rem; }
@@ -28,7 +27,10 @@
 
         <div id="result" class="mt-6 hidden">
             <div class="p-4 bg-red-50 rounded-lg mb-6 border border-red-100 text-center">
-                <h2 class="text-lg sm:text-xl font-semibold text-gray-700">風紀乱れ度 <span id="level" class="text-red-600 text-2xl sm:text-3xl font-black ml-1"></span></h2>
+                <h2 class="text-base sm:text-lg font-medium text-gray-600">
+                    風紀乱れ度: <span id="level" class="text-red-600 text-xl sm:text-2xl font-black ml-1"></span>
+                </h2>
+                <div class="mt-2 text-xl sm:text-2xl font-bold tracking-wider" id="status-badge"></div>
             </div>
             
             <div class="mt-4">
@@ -39,7 +41,7 @@
                             <tr class="border-b text-gray-600 font-medium">
                                 <th class="p-2 sm:p-3 cell-padding">投稿内容</th>
                                 <th class="p-2 w-12 text-center cell-padding">いいね</th>
-                                <th class="p-2 w-16 text-center cell-padding">確信度</th>
+                                <th class="p-2 w-20 text-center cell-padding">投稿日</th>
                                 <th class="p-2 w-16 text-center cell-padding">判定</th>
                             </tr>
                         </thead>
@@ -51,6 +53,14 @@
     </div>
 
     <script>
+        // 💡 風紀乱れ度に応じた文言と色の設定
+        function getStatusInfo(level) {
+            if (level <= 10.0) return { text: "健全", color: "text-green-600" };
+            if (level <= 13.0) return { text: "要観察", color: "text-yellow-600" };
+            if (level <= 15.0) return { text: "指導対象", color: "text-orange-600" };
+            return { text: "退学", color: "text-red-700 font-black" };
+        }
+
         async function checkMorals() {
             const rawHandle = document.getElementById('handle').value.trim();
             if (!rawHandle) return alert("ハンドル名を入力してください");
@@ -73,7 +83,15 @@
                 
                 const data = await response.json();
 
-                document.getElementById('level').innerText = data.disorder_level + "%";
+                // 風紀乱れ度とステータスの更新
+                const lvl = data.disorder_level;
+                document.getElementById('level').innerText = lvl + "%";
+                
+                const statusInfo = getStatusInfo(lvl);
+                const statusBadge = document.getElementById('status-badge');
+                statusBadge.innerText = `【${statusInfo.text}】`;
+                statusBadge.className = `mt-1 text-xl sm:text-2xl font-bold tracking-wider ${statusInfo.color}`;
+
                 const table = document.getElementById('post-table');
                 table.innerHTML = "";
 
@@ -81,18 +99,15 @@
                     table.innerHTML = "<tr><td colspan='4' class='p-4 text-center text-gray-500 text-xs sm:text-sm'>対象の投稿が見つかりませんでした</td></tr>";
                 } else {
                     data.posts.forEach(p => {
-                        const scoreColor = p.raw_score >= 57.8 ? 'text-red-600 font-bold' : 'text-gray-500';
-                        
-                        // 判定ラベルのデザイン（絵文字なし・スマホ向けにパディングを少し小さく）
                         const judgmentBadge = p.judgment === 'OUT'
-                            ? `<span class="bg-red-100 text-red-700 px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-bold">OUT</span>`
-                            : `<span class="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-[10px] sm:text-xs">SAFE</span>`;
+                            ? `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold">OUT</span>`
+                            : `<span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] sm:text-xs">SAFE</span>`;
 
                         const row = `
                             <tr class="border-b hover:bg-gray-50 transition-colors">
                                 <td class="p-2 sm:p-3 cell-padding break-all post-text">${p.text}</td>
                                 <td class="p-2 text-center cell-padding font-mono text-gray-600">${p.likes}</td>
-                                <td class="p-2 text-center cell-padding font-mono ${scoreColor}">${p.raw_score}%</td>
+                                <td class="p-2 text-center cell-padding font-mono text-gray-500">${p.date}</td>
                                 <td class="p-2 text-center cell-padding">${judgmentBadge}</td>
                             </tr>`;
                         table.insertAdjacentHTML('beforeend', row);
