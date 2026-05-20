@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>青空風紀委員（デバッグモード）</title>
+    <title>青空風紀委員（確信度57.8%基準）</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 p-8">
     <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h1 class="text-2xl font-bold mb-4 text-blue-600">👮‍♂️ 青空風紀委員 <span class="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded ml-2 font-normal">Raw Data Mode</span></h1>
-        <p class="text-sm text-gray-600 mb-4">AIモデルが出力した生の判定とスコア（確信度）をそのまま表示して原因を調査します。</p>
+        <h1 class="text-2xl font-bold mb-4 text-blue-600">👮‍♂️ 青空風紀委員</h1>
+        <p class="text-sm text-gray-600 mb-4">AIの出力ラベルに関わらず、確信度が57.8%以上の投稿をすべて取り締まります（直近100件解析）。</p>
         
         <input id="handle" type="text" placeholder="arai.bsky.social" class="border p-2 w-full mb-4 rounded focus:outline-blue-400">
         <button onclick="checkMorals()" id="btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full font-bold transition-all">
@@ -17,21 +17,22 @@
         </button>
 
         <div id="result" class="mt-8 hidden">
-            <div class="p-4 bg-blue-50 rounded-lg mb-6 border border-blue-100 text-center">
-                <h2 class="text-xl font-semibold text-gray-800">全体の風紀乱れ度（純粋なsexual割合）: <span id="level" class="text-blue-600 text-3xl font-black"></span></h2>
+            <div class="p-4 bg-red-50 rounded-lg mb-6 border border-red-100 text-center">
+                <h2 class="text-xl font-semibold text-gray-800">総括：風紀乱れ度 <span id="level" class="text-red-600 text-3xl font-black"></span></h2>
+                <p class="text-xs text-gray-500 mt-1">※AIの確信度が57.8%以上の投稿が「🚨 OUT」になります</p>
             </div>
             
             <div class="mt-4">
-                <h3 class="font-bold mb-2 text-gray-700">📜 生データレポート（いいね順）</h3>
+                <h3 class="font-bold mb-2 text-gray-700">📜 解析レポート（いいね順）</h3>
                 <div class="overflow-x-auto rounded-lg border border-gray-200">
                     <table class="w-full text-sm text-left">
                         <thead class="bg-gray-50">
                             <tr class="border-b">
                                 <th class="p-3">投稿内容</th>
                                 <th class="p-3 w-16 text-center">いいね</th>
-                                <th class="p-3 w-28 text-center">AIの出力ラベル</th>
-                                <th class="p-3 w-28 text-center">AIの確信度</th>
-                                <th class="p-3 w-20 text-center">判定</th>
+                                <th class="p-3 w-28 text-center">AI判定</th>
+                                <th class="p-3 w-28 text-center">AI確信度</th>
+                                <th class="p-3 w-20 text-center">最終判定</th>
                             </tr>
                         </thead>
                         <tbody id="post-table"></tbody>
@@ -52,7 +53,7 @@
             const resultDiv = document.getElementById('result');
             
             btn.disabled = true;
-            btn.innerText = "🚨 検査中...（生データを取得しています）";
+            btn.innerText = "🚨 検査中...（57.8%基準でスキャン中）";
             resultDiv.classList.add('hidden');
 
             try {
@@ -73,17 +74,20 @@
                     table.innerHTML = "<tr><td colspan='5' class='p-4 text-center text-gray-500 text-sm'>対象の投稿が見つかりませんでした</td></tr>";
                 } else {
                     data.posts.forEach(p => {
-                        // ラベルの種類によってバッジの色を変更
+                        // ラベルに応じたスタイル
                         const labelBadge = p.raw_label === 'sexual' 
-                            ? `<span class="bg-red-100 text-red-700 px-2 py-1 rounded font-bold">sexual</span>`
-                            : `<span class="bg-green-100 text-green-700 px-2 py-1 rounded">safe</span>`;
+                            ? `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-semibold">sexual</span>`
+                            : `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">safe</span>`;
+                        
+                        // 57.8%以上の確信度を強調
+                        const scoreColor = p.raw_score >= 57.8 ? 'text-red-600 font-bold' : 'text-gray-500';
                         
                         const row = `
                             <tr class="border-b hover:bg-gray-50 transition-colors">
                                 <td class="p-3 break-all leading-relaxed">${p.text}</td>
                                 <td class="p-3 font-mono text-center">${p.likes}</td>
                                 <td class="p-3 text-center">${labelBadge}</td>
-                                <td class="p-3 text-center font-mono font-bold">${p.raw_score}%</td>
+                                <td class="p-3 text-center font-mono ${scoreColor}">${p.raw_score}%</td>
                                 <td class="p-3 text-center">
                                     <span class="px-2 py-1 rounded-full text-xs font-bold ${p.judgment === 'OUT' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700'}">
                                         ${p.judgment === 'OUT' ? '🚨 OUT' : '✅ SAFE'}
