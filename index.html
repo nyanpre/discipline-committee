@@ -8,8 +8,8 @@
 </head>
 <body class="bg-slate-50 p-8">
     <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h1 class="text-2xl font-bold mb-4 text-blue-600">👮‍♂️ 青空風紀委員</h1>
-        <p class="text-sm text-gray-600 mb-4">Blueskyのハンドルを入力して、直近の投稿の健全性を調査します。</p>
+        <h1 class="text-2xl font-bold mb-4 text-blue-600">青空風紀委員</h1>
+        <p class="text-sm text-gray-600 mb-4">BlueskyのIDを入力して、直近の投稿の健全性を調査します。</p>
         
         <input id="handle" type="text" placeholder="arai.bsky.social" class="border p-2 w-full mb-4 rounded focus:outline-blue-400">
         <button onclick="checkMorals()" id="btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full font-bold transition-all">
@@ -45,7 +45,7 @@
             const resultDiv = document.getElementById('result');
             
             btn.disabled = true;
-            btn.innerText = "🚨 検査中...（AIが解析しています）";
+            btn.innerText = "🚨 検査中...（数分かかります）";
             resultDiv.classList.add('hidden');
 
             try {
